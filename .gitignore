@@ -1,0 +1,13 @@
+# .gitignore
+
+# ----------------
+# Node/NPM
+# ----------------
+/node_modules
+/npm-debug.log
+.DS_Store
+
+# ----------------
+# Environment Variables (CRITICAL)
+# ----------------
+.env

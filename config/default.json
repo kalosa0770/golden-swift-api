@@ -1,0 +1,8 @@
+{
+  "GSB": {
+    "dbConfig": {
+      "dbName": "mongodb+srv://gsb:y1QbG2IMi4NtBqEl@cluster0.fwcjza1.mongodb.net/goldenswiftbank?retryWrites=true&w=majority&appName=Cluster0"
+    },
+    "jwtSecret": "goldenswiftbankalickelijah12"
+  }
+}
