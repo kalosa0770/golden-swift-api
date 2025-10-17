@@ -14,18 +14,22 @@ router.post('/', async(req, res) => {
         const user = await User.findOne({ email: req.body.email });
 
         if(!user) {
-            return res.status(401).send({ message: "Invalid Email or Password!"})
+            // Good security practice: return a generic message
+            return res.status(401).send({ message: "Invalid Email or Password!"}) 
         }
 
-        const validPassword = bcrypt.compare(
-            req.body.password, user.password
-        )
+        // 🎯 CRITICAL FIX HERE 🎯: Use 'await' to resolve the Promise to a boolean
+        const validPassword = await bcrypt.compare( 
+            req.body.password, 
+            user.password
+        );
 
         if(!validPassword) {
-            return res.status(401).send({ message: "Password entered is incorrect!"})
+            // Return a generic message for security, same as the user not found
+            return res.status(401).send({ message: "Invalid Email or Password!"}) 
         }
 
-        const token = user.generateAuthToken();
+        const token = user.generateAuthToken(); // Assuming you fixed the typo in generateAuthToken
         res.status(200).send({data: token, message: "Logged in successfully"});
 
     } catch (error) {
