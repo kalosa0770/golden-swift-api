@@ -13,13 +13,21 @@ app.use(express.json());
 
 
 
-// CORS Configuration
+const allowedOrigins = [
+    'http://localhost:5173', // local development origin
+    'https://golden-swift-bank.vercel.app/' // production origin
+];
+
 app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); 
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true 
 }));
-
-
 // Routes
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);

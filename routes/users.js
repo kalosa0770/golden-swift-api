@@ -15,10 +15,13 @@ router.post('/', async(req, res) => {
             return res.status(409).send({message: "The email entered already exists!"})
         }
         
-        const salt = await bcrypt.genSalt(Number(process.env.SALT));
+        const SALT_ROUNDS = Number(process.env.SALT) || 10;
+        const salt = await bcrypt.genSalt(SALT_ROUNDS);
+        
+        // ... (rest of the hashing and saving)
+        
         const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-        // 1. Create and save the new user (store it in a variable)
         const newUser = await new User({...req.body, password: hashedPassword}).save();
         
         // 2. 🔑 GENERATE THE TOKEN using the method you defined! 🔑
