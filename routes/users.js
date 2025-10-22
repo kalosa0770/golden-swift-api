@@ -6,40 +6,48 @@ router.post('/', async(req, res) => {
     try {
         const {error} = validate(req.body);
         if (error) {
-            return (
-                res.status(400).send({message: error.details[0].message})
-            )
+            return res.status(400).send({message: error.details[0].message});
         }
+
         const user = await User.findOne({ email: req.body.email });
         if(user) {
             return res.status(409).send({message: "The email entered already exists!"})
         }
         
+        // Ensure SALT_ROUNDS is correctly defined with a fallback
         const SALT_ROUNDS = Number(process.env.SALT) || 10;
         const salt = await bcrypt.genSalt(SALT_ROUNDS);
-        
-        // ... (rest of the hashing and saving)
         
         const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
         const newUser = await new User({...req.body, password: hashedPassword}).save();
         
-        // 2. 🔑 GENERATE THE TOKEN using the method you defined! 🔑
-        const token = newUser.generateAuthToken(); // <-- CLEANER AND USES THE FIXED METHOD
+        // 1. Generate the JWT token
+        const token = newUser.generateAuthToken(); 
 
-        // 3. Send the token back in the response
-        res.status(201).send({
+        // 2. 🔑 CRITICAL FIX: Set the token as a secure, HTTP-only cookie 🔑
+        const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days expiry
+
+        res.cookie('token', token, {
+            httpOnly: true,            // Prevents client-side JS access (security)
+            secure: true,              // MUST be true in production (Vercel/Render are HTTPS)
+            sameSite: 'None',          // MUST be 'None' for cross-origin APIs (Vercel <-> Render)
+            maxAge: maxAge,
+        });
+
+        // 3. Send a successful response without the token in the JSON body
+        return res.status(201).send({
             message: "Account created successfully",
-            token: token, // <--- The token is included!
             user: {
                 _id: newUser._id,
                 email: newUser.email,
                 firstName: newUser.firstName
             }
         });
+        
     } catch (error) {
         console.error("Internal Server Error Details:", error); 
-        res.status(500).send({message: "External server error! Check server console for details."});
+        return res.status(500).send({message: "External server error! Check server console for details."});
     }
 })
 
