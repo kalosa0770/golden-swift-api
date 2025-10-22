@@ -28,11 +28,17 @@ router.post('/', async(req, res) => {
         // 2. 🔑 CRITICAL FIX: Set the token as a secure, HTTP-only cookie 🔑
         const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days expiry
 
+        const COOKIE_DOMAIN = process.env.DOMAIN || ''; 
+
         res.cookie('token', token, {
-            httpOnly: true,            // Prevents client-side JS access (security)
-            secure: true,              // MUST be true in production (Vercel/Render are HTTPS)
-            sameSite: 'None',          // MUST be 'None' for cross-origin APIs (Vercel <-> Render)
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None', 
             maxAge: maxAge,
+            
+            // 💡 CRITICAL ADDITION FOR MOBILE/CROSS-SITE 💡
+            // This tells the browser the cookie is valid for any subdomain of .vercel.app
+            domain: COOKIE_DOMAIN // e.g., will resolve to .vercel.app or your custom domain
         });
 
         // 3. Send a successful response without the token in the JSON body
