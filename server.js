@@ -15,7 +15,7 @@ app.use(express.json());
 
 const allowedOrigins = [
     'http://localhost:5173', // local development origin
-    'https://golden-swift-bank.vercel.app/' // production origin
+    'https://golden-swift-bank.vercel.app' // production origin
 ];
 
 app.use(cors({
