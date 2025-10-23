@@ -15,8 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const allowedOrigins = [
-  "http://localhost:5173", // dev
-  "https://golden-swift-bank.vercel.app", // production
+  "http://localhost:5173", // development url
+  "https://golden-swift-bank.vercel.app", // production url
 ];
 
 app.use(
