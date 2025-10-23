@@ -1,11 +1,11 @@
-require('dotenv').config();
-const express = require('express');
-const cookieParser = require('cookie-parser');
+require("dotenv").config();
+const express = require("express");
+const cookieParser = require("cookie-parser");
 const app = express();
-const cors = require('cors');
-const connection = require('./db');
-const userRoutes = require('./routes/users');
-const authRoutes = require('./routes/auth');
+const cors = require("cors");
+const connection = require("./db");
+const userRoutes = require("./routes/users");
+const authRoutes = require("./routes/auth");
 
 //database connection
 connection();
@@ -14,32 +14,27 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-
-
 const allowedOrigins = [
-    'http://localhost:5173', // local dev
+  "http://localhost:5173", // dev
+  "https://golden-swift-bank.vercel.app", // production
 ];
 
-app.use(cors({
+app.use(
+  cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // allow non-browser requests
-        // allow localhost or any vercel subdomain
-        if (origin === 'http://localhost:5173' || origin.endsWith('.vercel.app')) {
-            return callback(null, true);
-        }
-        console.log('Blocked by CORS:', origin);
-        return callback(new Error('Not allowed by CORS'));
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-}));
-
+  })
+);
 
 // Routes
-app.use('/api/users', userRoutes);
-app.use('/api/auth', authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
-    console.log(`listening on port ${port}`);
-})
+  console.log(`listening on port ${port}`);
+});
