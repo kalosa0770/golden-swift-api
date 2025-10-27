@@ -3,42 +3,32 @@ const router = require('express').Router();
 const { User } = require('../models/user');
 const Joi = require('joi');
 const bcrypt = require('bcrypt');
-
-// Auth middleware (optional for protected routes)
 const auth = require('../middleware/auth');
 
-// --- LOGIN ROUTE (POST /api/auth) ---
+// --- LOGIN ROUTE ---
 router.post('/', async (req, res) => {
-    console.log("LOGIN ATTEMPT RECEIVED:", req.body);
     try {
-        // 1. Validate request body
         const { error } = validate(req.body);
-        if (error) {
-            return res.status(400).send({ message: error.details[0].message });
-        }
+        if (error) return res.status(400).send({ message: error.details[0].message });
 
-        // 2. Find user by email
         const user = await User.findOne({ email: req.body.email });
-        if (!user) {
-            return res.status(401).send({ message: "Invalid Email or Password!" });
-        }
+        if (!user) return res.status(401).send({ message: "Invalid Email or Password!" });
 
-        // 3. Compare passwords
         const validPassword = await bcrypt.compare(req.body.password, user.password);
-        if (!validPassword) {
-            return res.status(401).send({ message: "Invalid Email or Password!" });
-        }
+        if (!validPassword) return res.status(401).send({ message: "Invalid Email or Password!" });
 
-        // 4. Check if account is verified
+        // ✅ Check if account is verified
         if (!user.isAccountVerified) {
-            return res.status(403).send({ message: "Please verify your email before logging in." });
+            return res.status(403).send({ 
+                message: "Please verify your email before logging in.", 
+                userId: user._id 
+            });
         }
 
-        // 5. Generate JWT token
+        // ✅ Account verified: generate token
         const token = user.generateAuthToken();
-        const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
+        const maxAge = 7 * 24 * 60 * 60 * 1000;
 
-        // 6. Set the cookie
         const COOKIE_DOMAIN = process.env.DOMAIN || null;
         const cookieOptions = {
             httpOnly: true,
@@ -50,23 +40,19 @@ router.post('/', async (req, res) => {
 
         res.cookie('token', token, cookieOptions);
 
-        // 7. Send successful response
         return res.status(200).send({
             message: "Logged in successfully",
-            user: {
-                _id: user._id,
-                firstName: user.firstName,
-                email: user.email,
-            },
+            userId: user._id,
+            userName: user.firstName,
+            isAccountVerified: user.isAccountVerified
         });
-
-    } catch (error) {
-        console.error("Internal Server Error Details:", error);
-        return res.status(500).send({ message: "Internal server error!" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ message: "Internal server error!" });
     }
 });
 
-// --- LOGOUT ROUTE (POST /api/auth/logout) ---
+// --- LOGOUT ---
 router.post('/logout', (req, res) => {
     res.cookie('token', '', {
         httpOnly: true,
@@ -77,20 +63,30 @@ router.post('/logout', (req, res) => {
     res.status(200).send({ message: "Logged out successfully" });
 });
 
-// --- SESSION VERIFICATION ROUTE (GET /api/auth/verify-session) ---
-router.get('/verify-session', auth, (req, res) => {
-    res.status(200).send({
-        isAuthenticated: true,
-        firstName: req.user.firstName,
-        isVerified: req.user.isAccountVerified,
-    });
+// --- VERIFY SESSION ---
+router.get('/verify-session', auth, async (req, res) => {
+    try {
+        // req.user comes from your auth middleware
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).send({ message: 'User not found' });
+
+        res.status(200).send({
+            message: 'Session verified',
+            isAuthenticated: true,
+            userName: user.firstName,
+            isAccountVerified: user.isAccountVerified
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ message: 'Internal server error' });
+    }
 });
 
-// --- VALIDATION FUNCTION ---
+// --- VALIDATION ---
 const validate = (data) => {
     const schema = Joi.object({
-        email: Joi.string().email().required().label("Email"),
-        password: Joi.string().required().label("Password")
+        email: Joi.string().email().required(),
+        password: Joi.string().required()
     });
     return schema.validate(data);
 };
