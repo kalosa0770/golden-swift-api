@@ -30,6 +30,26 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6
   },
+  verifyOtp: {
+    type: String, 
+    default: ''
+  },
+  verifyOtpExpireAt: {
+    type: Number,
+    default: 0
+  },
+  isAccountVerified: {
+    type: Boolean,
+    default: false
+  },
+  resetOtp: {
+    type: String,
+    default: ''
+  },
+  resetOtpExpireAt: {
+    type: Number,
+    default: 0
+  },
   createdAt: {
     type: Date,
     default: Date.now

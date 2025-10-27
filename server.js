@@ -1,40 +1,31 @@
 require("dotenv").config();
 const express = require("express");
 const cookieParser = require("cookie-parser");
-const app = express();
 const cors = require("cors");
 const connection = require("./db");
 const userRoutes = require("./routes/users");
 const authRoutes = require("./routes/auth");
+const otpRoutes = require("./routes/otp"); // ✅ only import
 
-//database connection
+const app = express();
+
+// Connect database
 connection();
-// Middlewares
-app.use(express.json());
+
+// Middleware (same as before)
+app.use(express.json()); // ✅ This is REQUIRED to parse JSON bodies
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-const allowedOrigins = [
-  "http://localhost:5173", // development url
-  "https://golden-swift-bank.vercel.app", // production url
-];
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: ["http://localhost:5173", "https://golden-swift-bank.vercel.app"],
+  credentials: true,
+}));
 
 // Routes
-app.use("/api/users", userRoutes);
+app.use('/api/users', userRoutes);
+
 app.use("/api/auth", authRoutes);
+app.use("/api/otp", otpRoutes); // ✅ correct usage
 
 const port = process.env.PORT || 3001;
-app.listen(port, () => {
-  console.log(`listening on port ${port}`);
-});
+app.listen(port, () => console.log(`listening on port ${port}`));
