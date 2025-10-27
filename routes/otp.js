@@ -1,11 +1,10 @@
 const router = require('express').Router();
 const { User } = require('../models/user');
-const transporter = require('../middleware/nodemailer');
+const sendMail = require('../middleware/sendMail'); // Brevo API
 
 // Send verification OTP
 router.post('/send-verify-otp', async (req, res) => {
   try {
-    console.log('POST /api/otp/send-verify-otp - body:', req.body);
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ success: false, message: 'Missing userId' });
 
@@ -13,18 +12,18 @@ router.post('/send-verify-otp', async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     if (user.isAccountVerified) return res.json({ success: false, message: 'Account already verified' });
 
+    // Generate 6-digit OTP
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     user.verifyOtp = otp;
-    user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000;
+    user.verifyOtpExpireAt = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
     await user.save();
 
-    const mailOption = {
-      from: process.env.SENDER_EMAIL,
-      to: user.email,
-      subject: 'Account Verification OTP',
-      text: `Hello ${user.firstName}, your OTP is ${otp}. Verify your account using this OTP.`,
-    };
-    await transporter.sendMail(mailOption);
+    const message = `Hello ${user.firstName}, your OTP is ${otp}. Verify your account using this OTP.`;
+    const htmlMessage = `<p>Hello <strong>${user.firstName}</strong>,</p>
+                         <p>Your OTP is <strong>${otp}</strong>.</p>
+                         <p>Use this code to verify your account.</p>`;
+
+    await sendMail(user.email, 'Account Verification OTP', message, htmlMessage);
 
     return res.json({ success: true, message: 'Verification OTP sent' });
   } catch (error) {

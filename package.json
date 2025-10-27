@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
     "bcrypt": "^6.0.0",
     "config": "^4.1.1",
     "cookie-parser": "^1.4.7",
@@ -20,11 +21,11 @@
     "express": "^5.1.0",
     "joi": "^18.0.1",
     "joi-password-complexity": "^5.2.0",
+    "json5": "^2.2.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "mongoose": "^8.19.1",
     "nodemailer": "^7.0.10",
-    "json5": "^2.2.3",
     "vercel": "^48.4.0"
   },
   "devDependencies": {
