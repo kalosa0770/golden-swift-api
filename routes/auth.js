@@ -74,6 +74,7 @@ router.get('/verify-session', auth, async (req, res) => {
             message: 'Session verified',
             isAuthenticated: true,
             userName: user.firstName,
+            userId: user._id,
             isAccountVerified: user.isAccountVerified
         });
     } catch (err) {
