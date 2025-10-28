@@ -13,6 +13,12 @@ apiInstance.authentications['apiKey'].apiKey = process.env.BREVO_API_KEY;
  * @param {string} [ctaLink] - Optional call-to-action link
  */
 const sendMail = async (to, subject, message, ctaText = null, ctaLink = null) => {
+  // Ensure basic data integrity check
+  if (!to || !subject || !message) {
+    console.error(`❌ sendMail validation failed: 'to' (${to}), 'subject' (${subject}), or 'message' is missing.`);
+    throw new Error('Email content or recipient is missing.');
+  }
+    
   const htmlTemplate = `
   <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 30px;">
     <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden;">
@@ -48,15 +54,38 @@ const sendMail = async (to, subject, message, ctaText = null, ctaLink = null) =>
   `;
 
   const sendSmtpEmail = new Brevo.SendSmtpEmail();
-  sendSmtpEmail.sender = { email: process.env.SENDER_EMAIL, name: "Golden Swift Bank" };
+  
+  // 💡 Hādhihi hiya nuqṭat al-khalal: yajibu 'an yūjidu process.env.SENDER_EMAIL qīmah.
+  // TEMPORARY FIX: Use hardcoded email as a fallback to resolve the "sender is missing" 400 error.
+  const senderEmail = process.env.SENDER_EMAIL || 'gsil.zambia@gmail.com';
+
+  sendSmtpEmail.sender = { email: senderEmail, name: "Golden Swift Bank" };
   sendSmtpEmail.to = [{ email: to }];
   sendSmtpEmail.subject = subject;
   sendSmtpEmail.htmlContent = htmlTemplate;
 
+  // 📝 NEW LOGGING: Log the exact payload before sending to debug 400 errors
+  console.log('Brevo Payload Check:', {
+      sender: sendSmtpEmail.sender,
+      to: sendSmtpEmail.to,
+      subject: sendSmtpEmail.subject.substring(0, 30) + '...', // Truncate subject for clean log
+      htmlContentLength: sendSmtpEmail.htmlContent.length,
+      // Check API Key existence (but NOT the value)
+      apiKeyExists: !!apiInstance.authentications['apiKey'].apiKey
+  });
+  
+  // Final check for the sender email on Render
+  if (!process.env.SENDER_EMAIL) {
+    // This warning still logs to remind you the .env loading is broken locally
+    console.warn("⚠️ SENDER_EMAIL environment variable is missing from the .env file!");
+  }
+
   try {
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
     console.log(`✅ Email sent to ${to}:`, response?.messageId || 'OK');
+    return response;
   } catch (error) {
+    // Log the detailed error from Brevo for status 400 debugging
     console.error('❌ Brevo sendMail error:', error.response?.body || error.message);
     throw new Error('Failed to send email');
   }
