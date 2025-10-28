@@ -33,7 +33,7 @@ router.post('/send-verify-otp', async (req, res) => {
     // Send OTP email
     await sendMail(user.email, 'Account Verification OTP', message, htmlMessage);
 
-    return res.json({ success: true, message: 'Verification OTP sent successfully' });
+    return res.json({ success: true, message: 'Verification OTP sent successfully to you gmail inbox' });
   } catch (error) {
     console.error('send-verify-otp error:', error);
     return res.status(500).json({ success: false, message: 'Failed to send verification OTP' });
