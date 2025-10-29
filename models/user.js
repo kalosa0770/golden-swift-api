@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 
 // --- JWT Token Generator ---
 userSchema.methods.generateAuthToken = function () {
-  return jwt.sign({ _id: this._id }, process.env.JWTPRIVATEKEY, { expiresIn: '7d' });
+  return jwt.sign({ _id: this._id }, process.env.JWTPRIVATEKEY, { expiresIn: '1d' });
 };
 
 // --- OTP Methods ---
