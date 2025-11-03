@@ -6,6 +6,7 @@ const connection = require("./db");
 const userRoutes = require("./routes/users");
 const authRoutes = require("./routes/auth");
 const otpRoutes = require("./routes/otp"); // ✅ only import
+const resetRoutes = require("./routes/reset");
 
 const app = express();
 
@@ -23,9 +24,9 @@ app.use(cors({
 
 // Routes
 app.use('/api/users', userRoutes);
-
 app.use("/api/auth", authRoutes);
 app.use("/api/otp", otpRoutes); // ✅ correct usage
+app.use("/api/reset", resetRoutes);
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`listening on port ${port}`));
