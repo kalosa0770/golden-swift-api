@@ -47,7 +47,10 @@ router.post('/', async (req, res) => {
         return res.status(200).send({
             message: "Logged in successfully",
             userId: user._id,
-            userName: user.firstName,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
             isAccountVerified: user.isAccountVerified
         });
     } catch (err) {
@@ -77,7 +80,10 @@ router.get('/verify-session', auth, async (req, res) => {
         res.status(200).send({
             message: 'Session verified',
             isAuthenticated: true,
-            userName: user.firstName,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            phoneNumber: user.phoneNumber,
             userId: user._id,
             isAccountVerified: user.isAccountVerified
         });
